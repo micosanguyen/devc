@@ -10,7 +10,7 @@ using namespace std;
 
 void initClientSocket(){
     WSADATA WSAData;
-    int result = WSAStartup(MAKEWORD(2, 2), &WSAData);
+    int result = WSAStartup(MAKEWORD(2, 2), &WSAData);      // thu tuc khai bao init socket, version, noi luu tru gia tri cua socket - result
     if(result != 0){
         cerr << "WSAStartup error " << result << endl;
         exit(1);
@@ -39,14 +39,35 @@ SOCKET createClientSocket(){
         exit(1);
     }
 
+    int connectionResult = connect(clientSocket, result->ai_addr, (int)result->ai_addrlen);
+    if(connectionResult == SOCKET_ERROR){
+        cerr << "Connection error" << endl;
+        exit(1);
+    }
+
+
+
     return clientSocket;
+}
+
+void receiveMessage(SOCKET clientSocket){
+    char buffer[512];
+    int iResult = recv(clientSocket, buffer, sizeof(buffer), 0);
+    if(iResult > 0){
+        buffer[iResult] = '\0';
+        cout << "Server message: " << buffer << endl;
+    } else if(iResult == 0) {
+        cout << "Connection closed" << endl;
+    } else{
+        cerr << "Recv failed!" << endl;
+    }
 }
 
 int main(){
     initClientSocket();
     SOCKET clientSocket = createClientSocket();
-
-    cout << "Socket client create" << endl;
+    cout << "Connected to the server!" << endl;
+    receiveMessage(clientSocket);
 
     return 0;
 }
