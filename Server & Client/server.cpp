@@ -1,6 +1,7 @@
 #include <iostream>
 #include <WinSock2.h>
 #include <ws2tcpip.h>
+#include <string>
 
 #pragma comment(lib, "ws2_32.lib");  // link thu vien ws2_32.lib de su dung cac ham cua thu vien nay
 using namespace std;
@@ -78,14 +79,14 @@ SOCKET acceptConnection(SOCKET serverSocket){
     return clientSocket;
 }
 
-void sendMessage(SOCKET clientSocket, const string &message){
-    int iResult = send(clientSocket, message.c_str(), message.length(), 0);
-    if(iResult == SOCKET_ERROR){
-        cerr << "Send failed." << endl;
-        exit(1);
-    }
-    cout << "Message sent." << endl;
-}
+// void sendMessage(SOCKET clientSocket, const string &message){
+//     int iResult = send(clientSocket, message.c_str(), message.length(), 0);
+//     if(iResult == SOCKET_ERROR){
+//         cerr << "Send failed." << endl;
+//         exit(1);
+//     }
+//     cout << "Message sent." << endl;
+// }
 
 void sendCommand(SOCKET clientSocket, const string &command){
     int iResult = send(clientSocket, command.c_str(), command.length(), 0);
@@ -105,6 +106,8 @@ string receiveResult(SOCKET clientSocket){
     }else {
         cerr << "Recv failed!" << endl;
     }
+
+    return string(buffer);
 }
 
 int main(){
@@ -119,8 +122,24 @@ int main(){
 
     SOCKET clientSocket = acceptConnection(serverSocket);
 
-    string message = "Connection established";
-    sendMessage(clientSocket, message);
+    while(true){
+
+        string command;
+        cout << "Enter your command: " << endl;
+        getline(cin, command);
+
+        if(command == "exit"){
+            break;
+        }
+
+        sendCommand(clientSocket, command);
+
+        string result = receiveResult(clientSocket);
+        cout << result << endl;
+
+    // string message = "Connection established";
+    // sendMessage(clientSocket, message);
+    }
 
     return 0;
 }

