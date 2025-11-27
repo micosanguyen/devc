@@ -87,6 +87,26 @@ void sendMessage(SOCKET clientSocket, const string &message){
     cout << "Message sent." << endl;
 }
 
+void sendCommand(SOCKET clientSocket, const string &command){
+    int iResult = send(clientSocket, command.c_str(), command.length(), 0);
+    if(iResult == SOCKET_ERROR){
+        cerr << "Send failed" << endl;
+        exit(1);
+    }
+}
+
+string receiveResult(SOCKET clientSocket){
+    char buffer[10000];
+    int iResult = recv(clientSocket, buffer, sizeof(buffer), 0);
+    if(iResult > 0){
+        buffer[iResult] = '\0';
+    }else if(iResult == 0){
+        cout << "Conection close!" << endl;
+    }else {
+        cerr << "Recv failed!" << endl;
+    }
+}
+
 int main(){
 
     initWinSock();
