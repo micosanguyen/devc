@@ -2,6 +2,7 @@
 #include <WinSock2.h>
 #include <ws2tcpip.h>
 #include <array>
+#include <direct.h>
 
 #pragma comment(lib, "ws2_32.lib");  // link thu vien ws2_32.lib de su dung cac ham cua thu vien nay
 using namespace std;
@@ -88,10 +89,26 @@ void handleServerCommands(SOCKET clientSocket){
             buffer[iResult] = '\0';
             string command(buffer);
 
+            if (command.rfind("cd", 0) == 0){
+                string newDir = command.substr(3);
+                if (_chdir(newDir.c_str()) == 0){
+                    char currentDir[1024];
+                    if(_getcwd(currentDir, sizeof(currentDir))){
+                        string Message = "Directory changed to " + string(currentDir) + "\n";
+                        send(clientSocket, Message.c_str(), Message.length(), 0);
+                    }else{
+                        send(clientSocket, "Failed to retrive directory.\n", 30, 0);
+                    }
+                }else{
+                    send(clientSocket, "Failed to change directory.\n", 29, 0);
+                }
+            }else{
+                string result = executeCommand(command);
+                send(clientSocket, result.c_str(), result.length(), 0);
+            }
+
             if (command == "exit") break;
 
-            string result = executeCommand(command);
-            send(clientSocket, result.c_str(), result.length(), 0);
         }else if(iResult == 0){
             cout << "Connection close!" << endl;
             break;
