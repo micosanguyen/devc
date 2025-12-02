@@ -47,8 +47,6 @@ SOCKET createClientSocket(){
         exit(1);
     }
 
-
-
     return clientSocket;
 }
 
